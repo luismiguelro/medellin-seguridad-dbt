@@ -1,0 +1,14 @@
+.venv/
+__pycache__/
+
+# dbt
+target/
+dbt_packages/
+logs/
+
+# datos (se regeneran con ingest/extract_load.py)
+data/
+*.duckdb
+*.duckdb.wal
+dbt_internal_packages/
+.user.yml

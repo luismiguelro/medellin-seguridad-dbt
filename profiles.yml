@@ -1,0 +1,10 @@
+# Perfil local versionado con el proyecto: DuckDB no tiene credenciales,
+# así que cualquiera que clone el repo puede ejecutarlo tal cual.
+medellin_seguridad:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: data/medellin.duckdb
+      schema: dev
+      threads: 4

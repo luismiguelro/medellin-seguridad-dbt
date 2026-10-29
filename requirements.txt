@@ -1,0 +1,1 @@
+duckdb>=1.1,<2  # dbt Fusion aún no lee el formato de DuckDB 2.x
