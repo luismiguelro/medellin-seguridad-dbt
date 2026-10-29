@@ -57,7 +57,7 @@ dbt build
 ## Estado
 
 - [x] Módulo 1 — Setup del proyecto y carga de datos crudos
-- [ ] Módulo 2 — Models (staging, marts, `ref`)
+- [x] Módulo 2 — Models (staging, marts, `ref`)
 - [ ] Módulo 3 — Sources (`source`, freshness)
 - [ ] Módulo 4 — Tests (genéricos y singulares)
 - [ ] Módulo 5 — Documentación (`dbt docs`)

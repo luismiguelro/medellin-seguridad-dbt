@@ -49,19 +49,6 @@ def download(name: str, path: str, refresh: bool) -> Path:
     return target
 
 
-def normalize_encoding(path: Path) -> Path:
-    """Algunos archivos mezclan UTF-8 y Latin-1 en distintas filas.
-    Se decodifica línea por línea para que DuckDB reciba UTF-8 válido."""
-    out = path.with_name(path.stem + ".utf8.csv")
-    with open(path, "rb") as src, open(out, "w", encoding="utf-8", newline="") as dst:
-        for line in src:
-            try:
-                dst.write(line.decode("utf-8"))
-            except UnicodeDecodeError:
-                dst.write(line.decode("latin-1"))
-    return out
-
-
 def load(con: duckdb.DuckDBPyConnection, name: str, csv_path: Path, source_path: str) -> None:
     # all_varchar: en raw no se interpretan tipos; el casteo es trabajo de staging.
     con.execute(
@@ -91,9 +78,7 @@ def main() -> None:
     for name, path in DATASETS.items():
         print(name)
         csv_file = download(name, path, args.refresh)
-        utf8_file = normalize_encoding(csv_file)
-        load(con, name, utf8_file, path)
-        utf8_file.unlink()
+        load(con, name, csv_file, path)
 
     con.close()
     print(f"\nListo: {DB_PATH}")
