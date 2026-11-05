@@ -5,27 +5,27 @@
 with
 
 hurto_a_persona as (
-    select 'Hurto a persona' as tipo_delito, * from raw.hurto_a_persona
+    select 'Hurto a persona' as tipo_delito, * from {{ source('medata', 'hurto_a_persona') }}
 ),
 
 hurto_de_moto as (
-    select 'Hurto de moto' as tipo_delito, * from raw.hurto_de_moto
+    select 'Hurto de moto' as tipo_delito, * from {{ source('medata', 'hurto_de_moto') }}
 ),
 
 hurto_de_carro as (
-    select 'Hurto de carro' as tipo_delito, * from raw.hurto_de_carro
+    select 'Hurto de carro' as tipo_delito, * from {{ source('medata', 'hurto_de_carro') }}
 ),
 
 hurto_a_residencia as (
-    select 'Hurto a residencia' as tipo_delito, * from raw.hurto_a_residencia
+    select 'Hurto a residencia' as tipo_delito, * from {{ source('medata', 'hurto_a_residencia') }}
 ),
 
 homicidio as (
-    select 'Homicidio' as tipo_delito, * from raw.homicidio
+    select 'Homicidio' as tipo_delito, * from {{ source('medata', 'homicidio') }}
 ),
 
 extorsion as (
-    select 'Extorsión' as tipo_delito, * from raw.extorsion
+    select 'Extorsión' as tipo_delito, * from {{ source('medata', 'extorsion') }}
 ),
 
 unidos as (

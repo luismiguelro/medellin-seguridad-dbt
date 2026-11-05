@@ -1,0 +1,27 @@
+sources:
+  - name: medata
+    description: Datos abiertos de la Alcaldía de Medellín, cargados sin transformar por ingest/extract_load.py.
+    schema: raw
+
+    # La ingesta se corre a mano: si pasan 30 días sin cargar, avisa; a los 90, falla.
+    config:
+      loaded_at_field: _loaded_at
+      freshness:
+        warn_after: {count: 30, period: day}
+        error_after: {count: 90, period: day}
+
+    tables:
+      - name: hurto_a_persona
+        description: Hurtos a personas en espacio público (SISC / Policía Nacional).
+      - name: hurto_de_moto
+        description: Hurtos de motocicletas.
+      - name: hurto_de_carro
+        description: Hurtos de automóviles.
+      - name: hurto_a_residencia
+        description: Hurtos a viviendas.
+      - name: homicidio
+        description: Homicidios.
+      - name: extorsion
+        description: Extorsiones denunciadas.
+      - name: incidentes_viales
+        description: Incidentes viales reportados por la Secretaría de Movilidad (2014–2020).

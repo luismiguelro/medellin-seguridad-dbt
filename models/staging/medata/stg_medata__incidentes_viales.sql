@@ -3,7 +3,7 @@
 with
 
 origen as (
-    select * from raw.incidentes_viales
+    select * from {{ source('medata', 'incidentes_viales') }}
 ),
 
 limpios as (
