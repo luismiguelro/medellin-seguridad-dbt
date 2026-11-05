@@ -4,7 +4,7 @@
 with
 
 origen as (
-    select * from raw.proyecciones_poblacion_2020
+    select * from {{ source('medata', 'proyecciones_poblacion_2020') }}
 ),
 
 limpios as (

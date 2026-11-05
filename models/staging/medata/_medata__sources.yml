@@ -24,4 +24,9 @@ sources:
       - name: extorsion
         description: Extorsiones denunciadas.
       - name: incidentes_viales
-        description: Incidentes viales reportados por la Secretaría de Movilidad (2014–2020).
+        description: Incidentes viales reportados por la Secretaría de Movilidad (2014-2020).
+      - name: proyecciones_poblacion_2020
+        description: Proyección de población 2020 por comuna, corregimiento y grupo de edad.
+        config:
+          freshness: null
+
