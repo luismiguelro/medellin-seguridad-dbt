@@ -10,7 +10,8 @@
         '\\xC1': 'Á', '\\xE1': 'á', '\\xE9': 'é', '\\xED': 'í',
         '\\xF1': 'ñ', '\\xF3': 'ó', '\\xFA': 'ú'
     } -%}
-    {%- set nulos = ['sin dato', 'sin inf', 'sn', 'no georef'] -%}
+    {#- 'none': detectado por el test accepted_values de sexo_victima (Módulo 4) -#}
+    {%- set nulos = ['sin dato', 'sin inf', 'sn', 'no georef', 'none'] -%}
 
     {#- namespace: una variable asignada dentro de un for no sobrevive al ciclo -#}
     {%- set ns = namespace(sql='trim(' ~ columna ~ ')') -%}

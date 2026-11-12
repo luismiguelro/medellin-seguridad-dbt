@@ -1,0 +1,9 @@
+# Los seeds también se pueden probar igual que los modelos.
+seeds:
+  - name: comunas
+    description: Catálogo de las 16 comunas y 5 corregimientos de Medellín.
+    columns:
+      - name: codigo_comuna
+        data_tests:
+          - unique
+          - not_null

@@ -10,23 +10,60 @@ sources:
         warn_after: {count: 30, period: day}
         error_after: {count: 90, period: day}
 
+    # -----------------------------------------------------------------------
+    # Módulo 4 · Clase "Testing sources"
+    #
+    # Los tests genéricos también se declaran sobre las fuentes. Sirven para
+    # atrapar problemas EN LA ENTRADA, antes de que lleguen a staging: si
+    # MEData publica un archivo roto, falla aquí y no en un mart tres capas
+    # más abajo, donde cuesta más encontrar la causa.
+    #
+    # Se prueban los campos sin los que el registro no tiene sentido.
+    # Ejecutar solo los tests de fuentes:  dbt test --select source:medata
+    # -----------------------------------------------------------------------
     tables:
       - name: hurto_a_persona
         description: Hurtos a personas en espacio público (SISC / Policía Nacional).
+        columns:
+          - name: fecha_hecho
+            data_tests: [not_null]
       - name: hurto_de_moto
         description: Hurtos de motocicletas.
+        columns:
+          - name: fecha_hecho
+            data_tests: [not_null]
       - name: hurto_de_carro
         description: Hurtos de automóviles.
+        columns:
+          - name: fecha_hecho
+            data_tests: [not_null]
       - name: hurto_a_residencia
         description: Hurtos a viviendas.
+        columns:
+          - name: fecha_hecho
+            data_tests: [not_null]
       - name: homicidio
         description: Homicidios.
+        columns:
+          - name: fecha_hecho
+            data_tests: [not_null]
       - name: extorsion
         description: Extorsiones denunciadas.
+        columns:
+          - name: fecha_hecho
+            data_tests: [not_null]
       - name: incidentes_viales
         description: Incidentes viales reportados por la Secretaría de Movilidad (2014-2020).
+        columns:
+          - name: FECHA_ACCIDENTE
+            data_tests: [not_null]
+          - name: GRAVEDAD_ACCIDENTE
+            data_tests: [not_null]
       - name: proyecciones_poblacion_2020
         description: Proyección de población 2020 por comuna, corregimiento y grupo de edad.
         config:
           freshness: null
+        columns:
+          - name: total_2020
+            data_tests: [not_null]
 

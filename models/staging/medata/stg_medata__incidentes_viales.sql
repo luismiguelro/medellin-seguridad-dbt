@@ -6,6 +6,11 @@ origen as (
     select * from {{ source('medata', 'incidentes_viales') }}
 ),
 
+-- La fuente trae 7 filas repetidas idénticas (detectadas por el test unique, Módulo 4).
+sin_duplicados as (
+    select distinct * from origen
+),
+
 limpios as (
     select
         nullif(trim(NRO_RADICADO), '')                         as numero_radicado,
@@ -38,7 +43,7 @@ limpios as (
         _source_file,
         _loaded_at
 
-    from origen
+    from sin_duplicados
 )
 
 select * from limpios

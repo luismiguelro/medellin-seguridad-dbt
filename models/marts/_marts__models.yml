@@ -1,0 +1,55 @@
+# ---------------------------------------------------------------------------
+# Módulo 4 · Clase "Generic tests" (continuación, capa marts)
+#
+# En marts lo más importante es:
+#   - la llave de cada dimensión (unique + not_null)
+#   - que los hechos apunten a dimensiones que existen (relationships)
+#   - que las columnas que calculamos nosotros tengan valores válidos
+# ---------------------------------------------------------------------------
+
+models:
+  - name: dim_comunas
+    columns:
+      - name: codigo_comuna
+        data_tests:
+          - unique
+          - not_null
+
+      - name: tipo_territorio
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['Comuna', 'Corregimiento']
+
+      # Si un nombre del seed no cruza con las proyecciones, el left join deja
+      # la población en NULL y las tasas por 100 mil saldrían vacías.
+      - name: poblacion_2020
+        data_tests:
+          - not_null
+
+  - name: fct_delitos
+    columns:
+      # relationships: todo codigo_comuna de los hechos debe existir en la
+      # dimensión. Los NULL no se evalúan (un delito sin comuna es válido).
+      - name: codigo_comuna
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('dim_comunas')
+                field: codigo_comuna
+
+      - name: franja_horaria
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['Madrugada', 'Mañana', 'Tarde', 'Noche']
+
+  - name: fct_incidentes_viales
+    columns:
+      - name: codigo_comuna
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('dim_comunas')
+                field: codigo_comuna

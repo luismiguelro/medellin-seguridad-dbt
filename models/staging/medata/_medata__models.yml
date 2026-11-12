@@ -1,0 +1,72 @@
+# ---------------------------------------------------------------------------
+# Módulo 4 · Clase "Generic tests"
+#
+# Un test genérico es una regla reutilizable que se declara en YAML, pegada a
+# una columna. Por dentro, dbt la convierte en un SELECT que busca las filas que
+# ROMPEN la regla: si el SELECT devuelve 0 filas, el test pasa; si devuelve
+# alguna, falla. dbt trae cuatro de fábrica:
+#
+#   unique           -> no hay valores repetidos en la columna
+#   not_null         -> no hay valores nulos
+#   accepted_values  -> solo aparecen los valores de una lista
+#   relationships    -> cada valor existe en otra tabla (integridad referencial)
+#
+# Buena práctica: probar la llave primaria (unique + not_null) de cada modelo
+# de staging, porque si la llave está mal, todo lo que se construye encima
+# (joins, conteos) queda mal.
+# ---------------------------------------------------------------------------
+
+models:
+  - name: stg_medata__incidentes_viales
+    columns:
+      # Severidad: por defecto un test que falla es un ERROR (detiene dbt build).
+      # Aquí los fallos son problemas conocidos de la fuente que NO debemos
+      # "arreglar" borrando filas:
+      #   - 23 radicados aparecen 2 veces con datos distintos (p. ej. la fecha
+      #     2018-03-02 vs 2018-02-03); no sabemos cuál versión es la correcta.
+      #   - 5 incidentes no tienen radicado, y los 5 son incidentes con muertos.
+      # Por eso se convierten en advertencia (warn), pero con un umbral: si el
+      # problema crece por encima de lo conocido, vuelve a ser error.
+      - name: numero_radicado
+        description: Número de radicado del incidente; llave del dataset.
+        data_tests:
+          - unique:
+              config:
+                warn_if: ">0"
+                error_if: ">30"
+          - not_null:
+              config:
+                warn_if: ">0"
+                error_if: ">10"
+
+      - name: gravedad
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['Con heridos', 'Con muertos', 'Solo daños']
+
+  - name: stg_medata__delitos
+    columns:
+      - name: tipo_delito
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values:
+                  - Hurto a persona
+                  - Hurto de moto
+                  - Hurto de carro
+                  - Hurto a residencia
+                  - Homicidio
+                  - Extorsión
+
+      - name: fecha_hora_hecho
+        data_tests:
+          - not_null
+
+      # accepted_values ignora los NULL: solo revisa los valores que sí existen.
+      - name: sexo_victima
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['Hombre', 'Mujer']
