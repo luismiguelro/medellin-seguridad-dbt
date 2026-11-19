@@ -60,5 +60,5 @@ dbt build
 - [x] Módulo 2 — Models (staging, marts, `ref`)
 - [x] Módulo 3 — Sources (`source`, freshness)
 - [x] Módulo 4 — Tests (genéricos y singulares)
-- [ ] Módulo 5 — Documentación (`dbt docs`)
+- [x] Módulo 5 — Documentación (`dbt docs`)
 - [ ] Módulo 6 — Deployment (CI con GitHub Actions)

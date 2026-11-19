@@ -145,11 +145,28 @@ models:
       - name: tasa_por_100k_habitantes
         description: '{{ doc("tasa_por_100k") }}'
 
+  # Ejercicio Módulo 5: el grano de un modelo agregado son las columnas del group by.
+  # Los totales cuentan INCIDENTES, no personas: un choque con 3 heridos suma 1.
   - name: agg_incidentes_viales_comuna
+    description: >
+      Una fila por comuna y año, con el número de incidentes viales según su gravedad.
+      Excluye los incidentes sin comuna registrada.
+
+      {{ doc("gravedad") }}
     columns:
       - name: anio
+        description: Año del incidente.
         data_tests:
           - not_null
       - name: nombre_comuna
+        description: Nombre de la comuna o corregimiento.
         data_tests:
           - not_null
+      - name: total_incidentes
+        description: Número total de incidentes (con heridos + con muertos + solo daños).
+      - name: total_heridos
+        description: Número de incidentes con heridos (no de personas heridas).
+      - name: total_muertos
+        description: Número de incidentes con muertos (no de personas fallecidas).
+      - name: total_danios
+        description: Número de incidentes con solo daños materiales.
