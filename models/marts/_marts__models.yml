@@ -53,3 +53,12 @@ models:
               arguments:
                 to: ref('dim_comunas')
                 field: codigo_comuna
+
+  - name: agg_incidentes_viales_comuna
+    columns:
+      - name: anio
+        data_tests:
+          - not_null
+      - name: nombre_comuna
+        data_tests:
+          - not_null

@@ -16,7 +16,11 @@ limpios as (
         nullif(trim(NRO_RADICADO), '')                         as numero_radicado,
         nullif(trim(EXPEDIENTE), '')                           as expediente,
 
-        -- FECHA_ACCIDENTE está en hora local; FECHA_ACCIDENTES es la misma en UTC
+        -- FECHA_ACCIDENTE está en hora local; FECHA_ACCIDENTES es la misma en UTC.
+        -- 6 incidentes (todos con muertos) traen la hora como "Sin Inf", p. ej.
+        -- "13/05/2016 Sin Inf": la fecha se conserva aunque la hora quede NULL
+        -- (detectado por el test not_null de agg_incidentes_viales_comuna, Módulo 4).
+        try_strptime(left(trim(FECHA_ACCIDENTE), 10), '%d/%m/%Y')::date as fecha_incidente,
         try_strptime(FECHA_ACCIDENTE, '%d/%m/%Y %H:%M:%S')     as fecha_hora_incidente,
 
         -- la fuente escribe la misma clase de 4 formas ("Caida Ocupante", "Caída de Ocupante", ...)

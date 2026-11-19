@@ -10,11 +10,11 @@ final as (
     select
         numero_radicado,
         expediente,
+        fecha_incidente,
         fecha_hora_incidente,
-        cast(fecha_hora_incidente as date)          as fecha_incidente,
-        year(fecha_hora_incidente)                  as anio,
-        month(fecha_hora_incidente)                 as mes,
-        hour(fecha_hora_incidente)                  as hora,
+        year(fecha_incidente)                       as anio,
+        month(fecha_incidente)                      as mes,
+        hour(fecha_hora_incidente)                  as hora,      -- NULL si la fuente no trae la hora
 
         clase_incidente,
         gravedad,

@@ -39,6 +39,11 @@ models:
                 warn_if: ">0"
                 error_if: ">10"
 
+      # La fecha siempre existe; la hora puede faltar (fecha_hora_incidente).
+      - name: fecha_incidente
+        data_tests:
+          - not_null
+
       - name: gravedad
         data_tests:
           - accepted_values:
