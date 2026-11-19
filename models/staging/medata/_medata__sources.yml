@@ -1,6 +1,11 @@
 sources:
   - name: medata
-    description: Datos abiertos de la Alcaldía de Medellín, cargados sin transformar por ingest/extract_load.py.
+    # Módulo 5: la descripción de la fuente reutiliza un doc block (models/_docs/conceptos.md).
+    description: >
+      Datos abiertos de la Alcaldía de Medellín (MEData), cargados sin transformar
+      por ingest/extract_load.py.
+
+      {{ doc("freshness_medata") }}
     schema: raw
 
     # La ingesta se corre a mano: si pasan 30 días sin cargar, avisa; a los 90, falla.

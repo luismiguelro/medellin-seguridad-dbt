@@ -5,17 +5,29 @@
 #   - la llave de cada dimensión (unique + not_null)
 #   - que los hechos apunten a dimensiones que existen (relationships)
 #   - que las columnas que calculamos nosotros tengan valores válidos
+#
+# Módulo 5 · Clase "Writing documentation"
+#
+# Los marts son lo que consumen analistas y dashboards: aquí la documentación
+# importa más que en ninguna otra capa. Cada modelo dice qué representa UNA
+# fila (el "grano") y qué limitaciones tiene.
 # ---------------------------------------------------------------------------
 
 models:
   - name: dim_comunas
+    description: Una fila por comuna (16) o corregimiento (5) de Medellín, con su población proyectada 2020.
     columns:
       - name: codigo_comuna
+        description: '{{ doc("codigo_comuna") }}'
         data_tests:
           - unique
           - not_null
 
+      - name: nombre_comuna
+        description: Nombre oficial de la comuna o corregimiento.
+
       - name: tipo_territorio
+        description: Comuna (zona urbana) o Corregimiento (zona rural).
         data_tests:
           - accepted_values:
               arguments:
@@ -24,35 +36,114 @@ models:
       # Si un nombre del seed no cruza con las proyecciones, el left join deja
       # la población en NULL y las tasas por 100 mil saldrían vacías.
       - name: poblacion_2020
+        description: Población total proyectada para 2020.
         data_tests:
           - not_null
 
+      - name: poblacion_hombres_2020
+        description: Hombres proyectados para 2020.
+
+      - name: poblacion_mujeres_2020
+        description: Mujeres proyectadas para 2020.
+
   - name: fct_delitos
+    description: >
+      Una fila por hecho delictivo reportado (2003 – noviembre 2023), con atributos de tiempo
+      listos para analizar por hora, día de la semana y franja horaria.
+
+      {{ doc("cobertura_delitos") }}
     columns:
-      # relationships: todo codigo_comuna de los hechos debe existir en la
-      # dimensión. Los NULL no se evalúan (un delito sin comuna es válido).
-      - name: codigo_comuna
-        data_tests:
-          - relationships:
-              arguments:
-                to: ref('dim_comunas')
-                field: codigo_comuna
+      - name: tipo_delito
+        description: Hurto a persona, Hurto de moto, Hurto de carro, Hurto a residencia, Homicidio o Extorsión.
+      - name: fecha_hora_hecho
+        description: Fecha y hora local del hecho.
+      - name: fecha_hecho
+        description: Fecha local del hecho.
+      - name: anio
+        description: Año del hecho.
+      - name: mes
+        description: Mes del hecho (1–12).
+      - name: hora
+        description: Hora del hecho (0–23).
+      - name: dia_semana
+        description: Día de la semana en español (Lunes … Domingo).
 
       - name: franja_horaria
+        description: '{{ doc("franja_horaria") }}'
         data_tests:
           - not_null
           - accepted_values:
               arguments:
                 values: ['Madrugada', 'Mañana', 'Tarde', 'Noche']
 
-  - name: fct_incidentes_viales
-    columns:
+      # relationships: todo codigo_comuna de los hechos debe existir en la
+      # dimensión. Los NULL no se evalúan (un delito sin comuna es válido).
       - name: codigo_comuna
+        description: '{{ doc("codigo_comuna") }}'
         data_tests:
           - relationships:
               arguments:
                 to: ref('dim_comunas')
                 field: codigo_comuna
+
+      - name: cantidad
+        description: Número de hechos que representa la fila (siempre 1); usar sum(cantidad) para contar.
+
+  - name: fct_incidentes_viales
+    description: >
+      Una fila por incidente vial reportado (julio 2014 – agosto 2020), con atributos de tiempo
+      y banderas de severidad.
+
+      {{ doc("calidad_incidentes_viales") }}
+    columns:
+      - name: numero_radicado
+        description: Número de radicado del incidente.
+      - name: fecha_incidente
+        description: Fecha local del incidente. Siempre presente.
+      - name: fecha_hora_incidente
+        description: Fecha y hora local; NULL cuando la fuente no registró la hora.
+      - name: anio
+        description: Año del incidente (calculado desde fecha_incidente).
+      - name: mes
+        description: Mes del incidente (1–12).
+      - name: hora
+        description: Hora del incidente (0–23); NULL cuando la fuente no registró la hora.
+      - name: gravedad
+        description: '{{ doc("gravedad") }}'
+      - name: tiene_heridos
+        description: true si gravedad = 'Con heridos'.
+      - name: tiene_muertos
+        description: true si gravedad = 'Con muertos'.
+
+      - name: codigo_comuna
+        description: '{{ doc("codigo_comuna") }}'
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('dim_comunas')
+                field: codigo_comuna
+
+  - name: agg_tasas_delitos_comuna
+    description: >
+      Una fila por año, tipo de delito y comuna: total de delitos y tasa por cada 100 mil
+      habitantes. Excluye los delitos sin comuna registrada.
+    columns:
+      - name: anio
+        description: Año de los hechos.
+      - name: tipo_delito
+        description: Tipo de delito.
+      - name: codigo_comuna
+        description: '{{ doc("codigo_comuna") }}'
+      - name: nombre_comuna
+        description: Nombre de la comuna o corregimiento.
+      - name: tipo_territorio
+        description: Comuna o Corregimiento.
+      - name: total_delitos
+        description: Número de hechos en el año, comuna y tipo.
+      - name: poblacion_2020
+        description: Población proyectada 2020 usada como denominador.
+      - name: tasa_por_100k_habitantes
+        description: '{{ doc("tasa_por_100k") }}'
 
   - name: agg_incidentes_viales_comuna
     columns:

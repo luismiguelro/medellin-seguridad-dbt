@@ -1,0 +1,16 @@
+# Módulo 5 · Clase "Writing documentation": también se documenta la capa
+# intermedia, aunque no la consuma el negocio directamente.
+models:
+  - name: int_delitos_comuna_anio
+    description: >
+      Una fila por comuna, año y tipo de delito con el total de hechos. Excluye los delitos
+      sin comuna. Base de agg_tasas_delitos_comuna.
+    columns:
+      - name: codigo_comuna
+        description: '{{ doc("codigo_comuna") }}'
+      - name: anio
+        description: Año de los hechos.
+      - name: tipo_delito
+        description: Tipo de delito.
+      - name: total_delitos
+        description: Suma de hechos (sum(cantidad)).

@@ -14,10 +14,23 @@
 # Buena práctica: probar la llave primaria (unique + not_null) de cada modelo
 # de staging, porque si la llave está mal, todo lo que se construye encima
 # (joins, conteos) queda mal.
+#
+# Módulo 5 · Clase "Writing documentation"
+#
+# `description` documenta un modelo o una columna. dbt lo publica en el sitio
+# de `dbt docs generate`. Puede ser texto directo o un doc block reutilizable:
+#   description: '{{ doc("codigo_comuna") }}'   (definido en models/_docs/)
+# La regla práctica: documentar lo que NO es obvio por el nombre (unidades,
+# valores posibles, de dónde sale, qué limitaciones tiene).
 # ---------------------------------------------------------------------------
 
 models:
   - name: stg_medata__incidentes_viales
+    description: >
+      Incidentes viales de la Secretaría de Movilidad (julio 2014 – agosto 2020), uno por fila,
+      con textos limpios, fechas tipadas y comuna derivada del código de barrio (CBML).
+
+      {{ doc("calidad_incidentes_viales") }}
     columns:
       # Severidad: por defecto un test que falla es un ERROR (detiene dbt build).
       # Aquí los fallos son problemas conocidos de la fuente que NO debemos
@@ -28,7 +41,7 @@ models:
       # Por eso se convierten en advertencia (warn), pero con un umbral: si el
       # problema crece por encima de lo conocido, vuelve a ser error.
       - name: numero_radicado
-        description: Número de radicado del incidente; llave del dataset.
+        description: Número de radicado del incidente; llave del dataset (con excepciones conocidas, ver arriba).
         data_tests:
           - unique:
               config:
@@ -39,20 +52,59 @@ models:
                 warn_if: ">0"
                 error_if: ">10"
 
+      - name: expediente
+        description: Número de expediente asignado por Movilidad.
+
       # La fecha siempre existe; la hora puede faltar (fecha_hora_incidente).
       - name: fecha_incidente
+        description: Fecha local del incidente. Siempre presente.
         data_tests:
           - not_null
 
+      - name: fecha_hora_incidente
+        description: Fecha y hora local del incidente. NULL en 6 casos donde la fuente registró la hora como "Sin Inf".
+
+      - name: clase_incidente
+        description: Tipo de incidente (Choque, Atropello, Caída de ocupante, Volcamiento, Incendio, Otro). Las 4 escrituras de "Caída de ocupante" en la fuente se unifican.
+
       - name: gravedad
+        description: '{{ doc("gravedad") }}'
         data_tests:
           - accepted_values:
               arguments:
                 values: ['Con heridos', 'Con muertos', 'Solo daños']
 
+      - name: diseno_via
+        description: Tipo de vía donde ocurrió (Tramo de vía, Intersección, Glorieta, Puente, ...).
+
+      - name: direccion
+        description: Dirección reportada del incidente.
+
+      - name: codigo_barrio
+        description: Código de barrio CBML de 4 dígitos; los 2 primeros son la comuna.
+
+      - name: codigo_comuna
+        description: '{{ doc("codigo_comuna") }}'
+
+      - name: nombre_barrio
+        description: Nombre del barrio según la fuente.
+
+      - name: latitud
+        description: Latitud WGS84, extraída del campo LOCATION "[longitud, latitud]".
+
+      - name: longitud
+        description: Longitud WGS84, extraída del campo LOCATION.
+
   - name: stg_medata__delitos
+    description: >
+      Hechos delictivos reportados (SISC / Policía Nacional), uno por fila. Une los 6 datasets
+      de MEData (hurtos a persona, de moto, de carro, a residencia, homicidios y extorsión),
+      que comparten el mismo esquema, y los limpia una sola vez.
+
+      {{ doc("cobertura_delitos") }}
     columns:
       - name: tipo_delito
+        description: Dataset de origen del hecho.
         data_tests:
           - not_null
           - accepted_values:
@@ -66,12 +118,76 @@ models:
                   - Extorsión
 
       - name: fecha_hora_hecho
+        description: Fecha y hora local del hecho (la fuente la trae con offset -05:00).
         data_tests:
           - not_null
 
+      - name: cantidad
+        description: Número de hechos que representa la fila (en la fuente siempre es 1).
+
+      - name: codigo_comuna
+        description: '{{ doc("codigo_comuna") }}'
+
+      - name: codigo_barrio
+        description: Código del barrio (sin el "#" de la fuente).
+
+      - name: nombre_barrio
+        description: Nombre del barrio según la fuente.
+
+      - name: lugar
+        description: Tipo de lugar (Vía pública, Estación del Metro, Residencia, ...).
+
+      - name: latitud
+        description: Latitud WGS84. ~195 hechos tienen coordenadas fuera de Medellín (ver test assert_delitos_coordenadas_en_medellin).
+
+      - name: longitud
+        description: Longitud WGS84.
+
       # accepted_values ignora los NULL: solo revisa los valores que sí existen.
       - name: sexo_victima
+        description: Sexo de la víctima (Hombre / Mujer); NULL si no se registró.
         data_tests:
           - accepted_values:
               arguments:
                 values: ['Hombre', 'Mujer']
+
+      - name: edad_victima
+        description: Edad de la víctima en años; NULL si la fuente trae -1 o un valor fuera de 0–110.
+
+      - name: estado_civil_victima
+        description: Estado civil de la víctima.
+
+      - name: medio_transporte_victima
+        description: Cómo se movilizaba la víctima (Caminata, Automóvil, Metro, ...).
+
+      - name: modalidad
+        description: Modalidad del hecho (Atraco, Descuido, Cosquilleo, Raponazo, Escopolamina, ...).
+
+      - name: arma_medio
+        description: Arma o medio empleado ("No" = sin arma).
+
+      - name: bien_hurtado
+        description: Bien hurtado (Celular, Dinero, Documentos, ...); NULL para delitos sin bien.
+
+      - name: categoria_bien
+        description: Categoría del bien hurtado (Tecnología, Dinero y joyas, Documentos, ...).
+
+  - name: stg_medata__poblacion
+    description: >
+      Proyección de población 2020 por comuna o corregimiento y grupo de edad. Excluye
+      las filas de subtotales ("Suma Comunas", "Suma Corregimientos", "Total Medellín").
+    columns:
+      - name: nombre_territorio
+        description: Nombre de la comuna o corregimiento, tal como lo escribe la fuente (se cruza con el seed comunas).
+      - name: tipo_territorio
+        description: Comuna o Corregimiento.
+      - name: grupo_edad
+        description: Grupo quinquenal de edad ("0-4", "5-9", ..., "80 Y MÁS") o "Total".
+      - name: anio
+        description: Año de la proyección (2020).
+      - name: poblacion_total
+        description: Personas proyectadas.
+      - name: poblacion_hombres
+        description: Hombres proyectados.
+      - name: poblacion_mujeres
+        description: Mujeres proyectadas.
