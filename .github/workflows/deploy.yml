@@ -35,10 +35,10 @@ jobs:
     timeout-minutes: 30
     steps:
       - name: Descargar el código del repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Instalar Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: "3.12"
           cache: pip
@@ -69,7 +69,7 @@ jobs:
         run: python scripts/exportar_marts.py
 
       - name: Instalar Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: "24"
           cache: npm
@@ -86,7 +86,7 @@ jobs:
       # en la página de la corrida (run_results.json dice qué pasó con cada nodo).
       - name: Guardar artefactos de la corrida
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: dbt-artifacts
           path: |
@@ -96,7 +96,7 @@ jobs:
           if-no-files-found: ignore
 
       - name: Preparar sitio de documentación
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v5
         with:
           path: site
 
@@ -113,4 +113,4 @@ jobs:
     steps:
       - name: Publicar en GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
