@@ -13,3 +13,6 @@ data/
 dbt_internal_packages/
 .user.yml
 site/
+web/node_modules/
+web/dist/
+web/public/data/

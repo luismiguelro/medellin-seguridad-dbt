@@ -1,0 +1,51 @@
+:root {
+  --fondo: #f7f7f5;
+  --tarjeta: #ffffff;
+  --texto: #1c1c1e;
+  --suave: #5f6368;
+  --borde: #e3e3e0;
+  --acento: #2563eb;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  color: var(--texto);
+  background: var(--fondo);
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --fondo: #111214;
+    --tarjeta: #1b1c1f;
+    --texto: #ececec;
+    --suave: #a0a4aa;
+    --borde: #2c2e33;
+    --acento: #60a5fa;
+  }
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--fondo); }
+main { max-width: 960px; margin: 0 auto; padding: 32px 16px 48px; }
+
+.eyebrow { color: var(--acento); font-weight: 600; font-size: .85rem; margin: 0 0 8px; text-transform: uppercase; letter-spacing: .04em; }
+h1 { font-size: clamp(1.6rem, 4vw, 2.3rem); line-height: 1.15; margin: 0 0 12px; }
+h2 { font-size: 1.05rem; margin: 0 0 8px; }
+.lead { color: var(--suave); font-size: 1.05rem; max-width: 60ch; margin: 0 0 24px; }
+
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 24px; }
+.chip {
+  border: 1px solid var(--borde); background: var(--tarjeta); color: var(--texto);
+  padding: 8px 14px; border-radius: 999px; font: inherit; font-size: .9rem; cursor: pointer;
+}
+.chip:hover { border-color: var(--acento); }
+.chip.activo { background: var(--acento); border-color: var(--acento); color: #fff; }
+.chip:focus-visible { outline: 2px solid var(--acento); outline-offset: 2px; }
+
+.tarjeta { background: var(--tarjeta); border: 1px solid var(--borde); border-radius: 12px; padding: 16px; }
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 12px; }
+.kpi-etiqueta { color: var(--suave); font-size: .85rem; margin: 0; }
+.kpi-valor { font-size: 1.9rem; font-weight: 700; margin: 4px 0 0; font-variant-numeric: tabular-nums; }
+.nota { color: var(--suave); font-size: .8rem; margin: 6px 0 0; }
+
+.cargando, .error { color: var(--suave); }
+.error { color: #dc2626; }
+
+footer { margin-top: 32px; color: var(--suave); font-size: .85rem; }
+footer a { color: var(--acento); }

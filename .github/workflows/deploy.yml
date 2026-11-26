@@ -60,8 +60,27 @@ jobs:
       - name: dbt build
         run: dbt build --target prod
 
+      # La documentación técnica pasa a /docs/; la raíz del sitio es el tablero.
       - name: dbt docs generate
-        run: dbt docs generate --target prod --output-dir site
+        run: dbt docs generate --target prod --output-dir site/docs
+
+      # Fase B: marts de la exposure -> Parquet -> tablero React en la raíz del sitio.
+      - name: Exportar marts del tablero a Parquet
+        run: python scripts/exportar_marts.py
+
+      - name: Instalar Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Construir tablero
+        working-directory: web
+        run: |
+          npm ci
+          npm run build
+          cp -r dist/. ../site/
 
       # Módulo 6 · Clase "Reviewing jobs": los artefactos quedan descargables
       # en la página de la corrida (run_results.json dice qué pasó con cada nodo).

@@ -3,7 +3,7 @@
 [![CI](https://github.com/luismiguelro/medellin-seguridad-dbt/actions/workflows/ci.yml/badge.svg)](https://github.com/luismiguelro/medellin-seguridad-dbt/actions/workflows/ci.yml)
 [![Deploy prod](https://github.com/luismiguelro/medellin-seguridad-dbt/actions/workflows/deploy.yml/badge.svg)](https://github.com/luismiguelro/medellin-seguridad-dbt/actions/workflows/deploy.yml)
 
-📖 **Documentación y linaje en vivo:** https://luismiguelro.github.io/medellin-seguridad-dbt/
+📊 **Tablero:** https://luismiguelro.github.io/medellin-seguridad-dbt/ · 📖 **Documentación y linaje:** https://luismiguelro.github.io/medellin-seguridad-dbt/docs/
 
 Pipeline analítico sobre **datos abiertos de seguridad ciudadana y seguridad vial de Medellín**
 (MEData, Alcaldía de Medellín), construido con **dbt + DuckDB** siguiendo las prácticas del curso
@@ -68,7 +68,7 @@ flowchart LR
 ```
 
 El grafo interactivo (con columnas, tests y descripciones) está en la
-[documentación publicada](https://luismiguelro.github.io/medellin-seguridad-dbt/).
+[documentación publicada](https://luismiguelro.github.io/medellin-seguridad-dbt/docs/).
 
 ## Cómo ejecutarlo
 

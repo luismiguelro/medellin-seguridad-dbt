@@ -1,0 +1,27 @@
+# ---------------------------------------------------------------------------
+# Fase B · Clase "Exposures"
+#
+# Una exposure declara QUIÉN consume los marts fuera de dbt (un tablero, una
+# app, un modelo de ML). No crea nada en la base de datos; sirve para:
+#   - que el tablero aparezca al final del grafo de linaje en dbt docs
+#   - saber qué se rompe aguas abajo si cambias un mart:
+#       dbt ls --select +exposure:tablero_seguridad_medellin
+#   - y aquí además define QUÉ se exporta al tablero: scripts/exportar_marts.py
+#     lee esta lista desde target/manifest.json.
+# ---------------------------------------------------------------------------
+exposures:
+  - name: tablero_seguridad_medellin
+    label: Tablero de seguridad de Medellín
+    type: dashboard
+    maturity: low
+    url: https://luismiguelro.github.io/medellin-seguridad-dbt/
+    description: >
+      Tablero web para público no técnico (React + DuckDB-WASM). Lee los marts
+      exportados a Parquet y los consulta dentro del navegador, sin servidor.
+    depends_on:
+      - ref('agg_delitos_hora_dia')
+      - ref('agg_tasas_delitos_comuna')
+      - ref('agg_incidentes_viales_comuna')
+      - ref('dim_comunas')
+    owner:
+      name: Luis Miguel Rodríguez
