@@ -8,12 +8,24 @@ sources:
       {{ doc("freshness_medata") }}
     schema: raw
 
-    # La ingesta se corre a mano: si pasan 30 días sin cargar, avisa; a los 90, falla.
+    # -----------------------------------------------------------------------
+    # Fase A · Clase "Frescura real"
+    #
+    # Antes: loaded_at_field = _loaded_at (cuándo cargamos NOSOTROS). Como el
+    # job carga los datos justo antes de medir, siempre pasaba: no decía nada.
+    #
+    # Ahora: la fecha del hecho MÁS RECIENTE del archivo (dbt calcula
+    # max(<expresión>)). Responde "¿qué tan viejos son los datos que publica
+    # la Alcaldía?". loaded_at_field acepta cualquier expresión SQL.
+    #
+    # Solo warn (sin error_after): si MEData deja de publicar, el tablero se
+    # sigue construyendo con lo último disponible, pero queda la advertencia.
+    # Hoy avisa: los delitos llegan hasta noviembre de 2023.
+    # -----------------------------------------------------------------------
     config:
-      loaded_at_field: _loaded_at
+      loaded_at_field: "cast(fecha_hecho as timestamptz)"
       freshness:
-        warn_after: {count: 30, period: day}
-        error_after: {count: 90, period: day}
+        warn_after: {count: 60, period: day}
 
     # -----------------------------------------------------------------------
     # Módulo 4 · Clase "Testing sources"
@@ -59,6 +71,9 @@ sources:
             data_tests: [not_null]
       - name: incidentes_viales
         description: Incidentes viales reportados por la Secretaría de Movilidad (2014-2020).
+        # Dataset histórico cerrado (termina en 2020) y sin columna fecha_hecho: sin freshness.
+        config:
+          freshness: null
         columns:
           - name: FECHA_ACCIDENTE
             data_tests: [not_null]

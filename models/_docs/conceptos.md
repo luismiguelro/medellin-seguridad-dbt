@@ -82,8 +82,13 @@ descarta**: varios casos corresponden a incidentes con muertos.
 
 
 {% docs freshness_medata %}
-La freshness se mide con `_loaded_at`, la fecha en que **nuestro** script cargó los datos.
-Indica que el pipeline corre, **no** que la información sea reciente: MEData actualizó los
-archivos de delitos por última vez en marzo de 2025 (último hecho: noviembre de 2023) y los
-incidentes viales llegan hasta agosto de 2020.
+La freshness se mide con la fecha del **hecho más reciente** de cada archivo
+(`max(fecha_hecho)`), no con la fecha en que nuestro script cargó los datos. Así responde
+la pregunta que importa: *¿qué tan actual es la información que publica la Alcaldía?*
+Avisa (warn) si el último hecho tiene más de 60 días; hoy los delitos llegan hasta
+noviembre de 2023. Los incidentes viales (hasta agosto de 2020) y las proyecciones de
+población son datasets históricos cerrados y no se miden.
+
+La detección de archivos nuevos la hace aparte el workflow `revisar_medata.yml`, que compara
+a diario el ETag de cada archivo con `ingest/estado_medata.json`.
 {% enddocs %}

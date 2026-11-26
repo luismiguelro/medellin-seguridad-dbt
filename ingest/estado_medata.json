@@ -1,0 +1,42 @@
+{
+  "hurto_a_persona": {
+    "etag": "\"6ad10314-76b7482\"",
+    "last_modified": "Thu, 15 Oct 2026 16:45:08 GMT",
+    "bytes": 124482690
+  },
+  "hurto_de_moto": {
+    "etag": "\"6ad10314-1e85a57\"",
+    "last_modified": "Thu, 15 Oct 2026 16:45:08 GMT",
+    "bytes": 32004695
+  },
+  "hurto_de_carro": {
+    "etag": "\"6ad10314-daa08c\"",
+    "last_modified": "Thu, 15 Oct 2026 16:45:08 GMT",
+    "bytes": 14327948
+  },
+  "hurto_a_residencia": {
+    "etag": "\"6ad10314-10408ae\"",
+    "last_modified": "Thu, 15 Oct 2026 16:45:08 GMT",
+    "bytes": 17041582
+  },
+  "homicidio": {
+    "etag": "\"6ad10313-6be1f5\"",
+    "last_modified": "Thu, 15 Oct 2026 16:45:07 GMT",
+    "bytes": 7070197
+  },
+  "extorsion": {
+    "etag": "\"6ad10313-2521fd\"",
+    "last_modified": "Thu, 15 Oct 2026 16:45:07 GMT",
+    "bytes": 2433533
+  },
+  "incidentes_viales": {
+    "etag": "\"6ad1031a-3b70fd8\"",
+    "last_modified": "Thu, 15 Oct 2026 16:45:14 GMT",
+    "bytes": 62328792
+  },
+  "proyecciones_poblacion_2020": {
+    "etag": "\"6ad102e4-540e\"",
+    "last_modified": "Thu, 15 Oct 2026 16:44:20 GMT",
+    "bytes": 21518
+  }
+}

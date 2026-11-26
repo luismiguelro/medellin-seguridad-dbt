@@ -1,0 +1,57 @@
+# ---------------------------------------------------------------------------
+# Fase A · Clase "Detección de cambios"
+#
+# Job liviano que corre TODOS LOS DÍAS: pregunta a MEData si algún archivo
+# cambió (solo encabezados HTTP, sin descargar nada). Si hubo cambios:
+#   1. guarda las huellas nuevas en ingest/estado_medata.json (queda en el
+#      historial de git: es una bitácora de cuándo publicó la Alcaldía)
+#   2. dispara el job "Deploy prod", que descarga, reconstruye y publica.
+#
+# Detalle importante: un push hecho con el GITHUB_TOKEN del propio workflow
+# NO dispara otros workflows (GitHub lo evita para que no haya ciclos
+# infinitos). Por eso el deploy se lanza explícitamente con `gh workflow run`.
+# ---------------------------------------------------------------------------
+name: Revisar MEData
+
+on:
+  schedule:
+    - cron: "0 12 * * *"   # todos los días, 7:00 a. m. hora Colombia
+  workflow_dispatch:
+
+permissions:
+  contents: write   # para hacer commit de estado_medata.json
+  actions: write    # para disparar deploy.yml
+
+jobs:
+  revisar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      # extract_load.py importa duckdb; revisar_cambios.py reutiliza su lista de archivos.
+      - run: pip install -r requirements.txt
+
+      - name: ¿Cambió algo en MEData?
+        id: revision
+        run: python ingest/revisar_cambios.py
+
+      - name: Guardar huellas nuevas
+        if: steps.revision.outputs.hay_cambios == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add ingest/estado_medata.json
+          git commit -m "MEData publicó cambios: actualizar estado_medata.json"
+          git push
+
+      - name: Disparar deploy a prod
+        if: steps.revision.outputs.hay_cambios == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run deploy.yml --ref main
