@@ -15,7 +15,7 @@
 // ---------------------------------------------------------------------------
 import { useEffect, useMemo, useState } from 'react'
 import { consultar } from './db.js'
-import { GraficaAnual, GraficaComunas, GraficaHorario, GraficaMensual } from './graficas.jsx'
+import { GraficaAnual, GraficaComunas, GraficaHorario, GraficaMensual, MapaComunas } from './graficas.jsx'
 import { MESES, fmt } from './constantes.js'
 
 const TIPOS = ['Todos', 'Hurto a persona', 'Hurto de moto', 'Hurto de carro', 'Hurto a residencia', 'Homicidio', 'Extorsión']
@@ -26,6 +26,7 @@ export default function App() {
   const [anio, setAnio] = useState(null)
   const [comparar, setComparar] = useState(null)
   const [comuna, setComuna] = useState(null)    // null = toda la ciudad
+  const [medida, setMedida] = useState('tasa')  // comunas: 'tasa' por 100 mil hab. o 'total' de hechos
   const [datos, setDatos] = useState(null)
   const [error, setError] = useState(null)
 
@@ -104,6 +105,10 @@ export default function App() {
   const lugar = comuna == null ? 'Medellín' : meta.comunas.find((c) => c.codigo === comuna).nombre
   const periodo = mesLimite < 12 ? ` (ene–${MESES[mesLimite - 1].toLowerCase()})` : ''
   const delito = tipo === 'Todos' ? 'Delitos' : tipo
+  const propsComunas = datos && {
+    datos: datos.porComuna, comunas: meta.comunas, medida, anio, comparar, seleccion: comuna,
+    onSeleccion: (c) => setComuna(c === comuna ? null : c),   // segundo clic = quitar filtro
+  }
 
   return (
     <main>
@@ -155,10 +160,16 @@ export default function App() {
 
           <Tarjeta
             titulo={`Comunas en ${anio}${periodo} frente a ${comparar}`}
-            nota="Haz clic en una comuna para filtrar todo el tablero. Ojo: el centro (La Candelaria) recibe a diario mucha más gente de la que vive allí, por eso su tasa por habitante sale tan alta."
+            nota="Haz clic en una comuna (en el mapa o en las barras) para filtrar todo el tablero. Ojo: el centro (La Candelaria) recibe a diario mucha más gente de la que vive allí, por eso su tasa por habitante sale tan alta."
           >
-            <GraficaComunas datos={datos.porComuna} comunas={meta.comunas} anio={anio} comparar={comparar} seleccion={comuna}
-              onSeleccion={(c) => setComuna(c === comuna ? null : c)} />
+            <div className="segmentado" role="group" aria-label="Medida">
+              <button aria-pressed={medida === 'tasa'} onClick={() => setMedida('tasa')}>Por 100 mil habitantes</button>
+              <button aria-pressed={medida === 'total'} onClick={() => setMedida('total')}>Número de hechos</button>
+            </div>
+            <div className="rejilla">
+              <MapaComunas {...propsComunas} />
+              <GraficaComunas {...propsComunas} />
+            </div>
           </Tarjeta>
 
           <Tarjeta titulo={`¿Cuándo ocurren? Día y hora en ${anio}`} nota="Cada cuadro es una hora de un día de la semana; más oscuro = más hechos.">

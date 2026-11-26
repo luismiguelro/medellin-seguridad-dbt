@@ -11,7 +11,7 @@
 // Regla de color en todo el tablero: azul = año elegido, gris = comparación.
 // ---------------------------------------------------------------------------
 import { useEffect, useState } from 'react'
-import { Grafica } from './echarts.jsx'
+import { Grafica, echarts } from './echarts.jsx'
 import { DIAS, MESES, fmt } from './constantes.js'
 
 // Colores según el tema claro/oscuro del sistema.
@@ -25,8 +25,8 @@ function useTema() {
     return () => mq.removeEventListener('change', cambio)
   }, [])
   return oscuro
-    ? { azul: '#60a5fa', gris: '#5b6170', texto: '#a0a4aa', linea: 'rgba(255,255,255,.08)', calor: ['#1b2433', '#60a5fa'] }
-    : { azul: '#2563eb', gris: '#c4c7ce', texto: '#5f6368', linea: 'rgba(0,0,0,.07)', calor: ['#eef3fd', '#1e40af'] }
+    ? { azul: '#60a5fa', gris: '#5b6170', texto: '#a0a4aa', linea: 'rgba(255,255,255,.08)', calor: ['#1b2433', '#60a5fa'], borde: '#111214', resalte: '#fbbf24' }
+    : { azul: '#2563eb', gris: '#c4c7ce', texto: '#5f6368', linea: 'rgba(0,0,0,.07)', calor: ['#eef3fd', '#1e40af'], borde: '#ffffff', resalte: '#f59e0b' }
 }
 
 const base = (t) => ({
@@ -80,17 +80,22 @@ export function GraficaAnual({ datos, anio, comparar }) {
   )
 }
 
-export function GraficaComunas({ datos, comunas, anio, comparar, seleccion, onSeleccion }) {
-  const t = useTema()
-  const [medida, setMedida] = useState('tasa')   // 'tasa' por 100 mil hab. o 'total' de hechos
+// Valor por comuna según la medida elegida: tasa por 100 mil hab. o número de hechos.
+// Lo usan el mapa y las barras, así ambos muestran exactamente lo mismo.
+function filasComunas(datos, comunas, medida) {
+  return comunas.map((c) => {
+    const d = datos.find((f) => f.codigo === c.codigo) ?? { a: 0, b: 0 }
+    const valor = (x) => (medida === 'tasa' ? Math.round((x * 100000) / c.poblacion) : x)
+    return { ...c, a: valor(d.a), b: valor(d.b), cambio: d.b ? ((d.a - d.b) / d.b) * 100 : null }
+  })
+}
 
-  const filas = comunas
-    .map((c) => {
-      const d = datos.find((f) => f.codigo === c.codigo) ?? { a: 0, b: 0 }
-      const valor = (x) => (medida === 'tasa' ? Math.round((x * 100000) / c.poblacion) : x)
-      return { ...c, a: valor(d.a), b: valor(d.b), cambio: d.b ? ((d.a - d.b) / d.b) * 100 : null }
-    })
-    .sort((x, y) => x.a - y.a)   // ECharts dibuja de abajo hacia arriba: el mayor queda arriba
+const textoCambio = (f) => (f.cambio == null ? '' : `<br/>Cambio en hechos: ${f.cambio > 0 ? '+' : ''}${fmt.format(f.cambio)} %`)
+
+export function GraficaComunas({ datos, comunas, medida, anio, comparar, seleccion, onSeleccion }) {
+  const t = useTema()
+  // ECharts dibuja de abajo hacia arriba: orden ascendente deja el mayor arriba.
+  const filas = filasComunas(datos, comunas, medida).sort((x, y) => x.a - y.a)
 
   // La comuna seleccionada queda resaltada; las demás se atenúan.
   const barra = (f, campo, color) => ({
@@ -99,34 +104,91 @@ export function GraficaComunas({ datos, comunas, anio, comparar, seleccion, onSe
   })
 
   return (
-    <>
-      <div className="segmentado" role="group" aria-label="Medida">
-        <button aria-pressed={medida === 'tasa'} onClick={() => setMedida('tasa')}>Por 100 mil habitantes</button>
-        <button aria-pressed={medida === 'total'} onClick={() => setMedida('total')}>Número de hechos</button>
-      </div>
-      <Grafica
-        style={{ height: Math.max(420, filas.length * 30) }}
-        onEvents={{ click: (e) => onSeleccion(filas[e.dataIndex].codigo) }}
-        option={{
-          ...base(t),
-          tooltip: {
-            trigger: 'axis', axisPointer: { type: 'shadow' },
-            formatter: (ps) => {
-              const f = filas[ps[0].dataIndex]
-              const cambio = f.cambio == null ? '' : `<br/>Cambio en hechos: ${f.cambio > 0 ? '+' : ''}${fmt.format(f.cambio)} %`
-              return `<b>${f.nombre}</b><br/>${anio}: ${fmt.format(f.a)}<br/>${comparar}: ${fmt.format(f.b)}${cambio}`
-            },
+    <Grafica
+      style={{ height: Math.max(460, filas.length * 26) }}
+      onEvents={{ click: (e) => onSeleccion(filas[e.dataIndex].codigo) }}
+      option={{
+        ...base(t),
+        tooltip: {
+          trigger: 'axis', axisPointer: { type: 'shadow' },
+          formatter: (ps) => {
+            const f = filas[ps[0].dataIndex]
+            return `<b>${f.nombre}</b><br/>${anio}: ${fmt.format(f.a)}<br/>${comparar}: ${fmt.format(f.b)}${textoCambio(f)}`
           },
-          grid: { left: 150, right: 16, top: 36, bottom: 24 },
-          xAxis: ejeValor(t),
-          yAxis: { ...ejeCategoria(t, filas.map((f) => f.nombre)), axisLabel: { color: t.texto, width: 140, overflow: 'truncate' } },
-          series: [
-            { name: String(comparar), type: 'bar', color: t.gris, data: filas.map((f) => barra(f, 'b', t.gris)), barGap: '10%' },
-            { name: String(anio), type: 'bar', color: t.azul, data: filas.map((f) => barra(f, 'a', t.azul)) },
-          ],
-        }}
-      />
-    </>
+        },
+        grid: { left: 150, right: 16, top: 36, bottom: 24 },
+        xAxis: ejeValor(t),
+        yAxis: { ...ejeCategoria(t, filas.map((f) => f.nombre)), axisLabel: { color: t.texto, width: 140, overflow: 'truncate' } },
+        series: [
+          { name: String(comparar), type: 'bar', color: t.gris, data: filas.map((f) => barra(f, 'b', t.gris)), barGap: '10%' },
+          { name: String(anio), type: 'bar', color: t.azul, data: filas.map((f) => barra(f, 'a', t.azul)) },
+        ],
+      }}
+    />
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Fase B · Clase "El mapa"
+//
+// Un mapa coroplético colorea cada zona según un valor. Los polígonos salen
+// de web/public/geo/comunas.geojson (límites oficiales, ver
+// scripts/descargar_mapa_comunas.py) y se unen con los datos por
+// codigo_comuna: es el mismo "join" que haríamos en SQL, pero en el dibujo.
+// ---------------------------------------------------------------------------
+let mapaListo = null
+function cargarMapa() {
+  mapaListo ??= fetch(new URL('geo/comunas.geojson', document.baseURI))
+    .then((r) => r.json())
+    .then((geo) => {
+      // ECharts une polígonos y datos por la propiedad "name".
+      geo.features.forEach((f) => { f.properties.name = String(f.properties.codigo_comuna) })
+      echarts.registerMap('medellin', geo)
+    })
+  return mapaListo
+}
+
+export function MapaComunas({ datos, comunas, medida, anio, comparar, seleccion, onSeleccion }) {
+  const t = useTema()
+  const [listo, setListo] = useState(false)
+  useEffect(() => { cargarMapa().then(() => setListo(true)) }, [])
+  if (!listo) return <p className="cargando">Cargando mapa…</p>
+
+  const filas = filasComunas(datos, comunas, medida)
+  const porCodigo = Object.fromEntries(filas.map((f) => [String(f.codigo), f]))
+
+  return (
+    <Grafica
+      style={{ height: 460 }}
+      onEvents={{ click: (p) => onSeleccion(Number(p.name)) }}
+      option={{
+        textStyle: { color: t.texto, fontFamily: 'inherit' },
+        tooltip: {
+          trigger: 'item',
+          formatter: (p) => {
+            const f = porCodigo[p.name]
+            return f ? `<b>${f.nombre}</b><br/>${anio}: ${fmt.format(f.a)}<br/>${comparar}: ${fmt.format(f.b)}${textoCambio(f)}` : ''
+          },
+        },
+        visualMap: {
+          min: 0, max: Math.max(1, ...filas.map((f) => f.a)), left: 0, bottom: 0, itemHeight: 110, calculable: false,
+          text: ['Más', 'Menos'], inRange: { color: t.calor }, textStyle: { color: t.texto },
+          formatter: (v) => fmt.format(Math.round(v)),
+        },
+        series: [{
+          type: 'map', map: 'medellin', roam: false, selectedMode: false,
+          aspectScale: 0.994,   // Medellín está a ~6° de latitud: casi sin deformación
+          label: { show: false },
+          itemStyle: { borderColor: t.borde, borderWidth: 0.8 },
+          emphasis: { label: { show: false }, itemStyle: { areaColor: t.resalte } },
+          data: filas.map((f) => ({
+            name: String(f.codigo),
+            value: f.a,
+            itemStyle: f.codigo === seleccion ? { borderColor: t.texto, borderWidth: 2.5 } : undefined,
+          })),
+        }],
+      }}
+    />
   )
 }
 

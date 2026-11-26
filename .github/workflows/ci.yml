@@ -52,3 +52,22 @@ jobs:
       # error falla, el comando termina con código distinto de 0 y el PR queda en ❌.
       - name: dbt build
         run: dbt build --target ci
+
+      # Fase B: un PR también puede romper el tablero (un mart sin una columna
+      # que el frontend usa, un error de JavaScript). Se prueba la exportación
+      # y la construcción del sitio, sin publicarlo.
+      - name: Exportar marts del tablero
+        run: python scripts/exportar_marts.py
+
+      - name: Instalar Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Construir tablero
+        working-directory: web
+        run: |
+          npm ci
+          npm run build
