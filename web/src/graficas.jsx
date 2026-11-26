@@ -54,9 +54,11 @@ export function GraficaMensual({ datos, anio, comparar }) {
   )
 }
 
-export function GraficaAnual({ datos, anio, comparar }) {
+export function GraficaAnual({ datos, anio, comparar, parciales = [] }) {
   const t = useTema()
-  const n = datos.length
+  // Un tramo es punteado si toca un año incompleto (al inicio o al final de la serie).
+  const parcial = (i) => parciales.includes(datos[i]?.anio)
+  const enPunteado = (i) => parcial(i) || parcial(i - 1) || parcial(i + 1)
   // Los dos años del filtro se marcan con un punto grande.
   const punto = (f) => ({
     value: f.total,
@@ -71,10 +73,10 @@ export function GraficaAnual({ datos, anio, comparar }) {
       xAxis: ejeCategoria(t, datos.map((f) => f.anio)),
       yAxis: ejeValor(t),
       series: [
-        { name: 'Hechos', type: 'line', color: t.azul, lineStyle: { width: 2.5 }, symbol: 'circle',
-          data: datos.map((f, i) => (i < n - 1 ? punto(f) : null)) },
-        { name: 'Hechos (año incompleto)', type: 'line', color: t.azul, lineStyle: { width: 2.5, type: 'dashed' }, symbol: 'circle',
-          data: datos.map((f, i) => (i >= n - 2 ? punto(f) : null)) },
+        { name: 'Total', type: 'line', color: t.azul, lineStyle: { width: 2.5 }, symbol: 'circle',
+          data: datos.map((f, i) => (!parcial(i) ? punto(f) : null)) },
+        { name: 'Total (año incompleto)', type: 'line', color: t.azul, lineStyle: { width: 2.5, type: 'dashed' }, symbol: 'circle',
+          data: datos.map((f, i) => (enPunteado(i) ? punto(f) : null)) },
       ],
     }} />
   )
@@ -192,13 +194,13 @@ export function MapaComunas({ datos, comunas, medida, anio, comparar, seleccion,
   )
 }
 
-export function GraficaHorario({ datos }) {
+export function GraficaHorario({ datos, sustantivo = 'hechos' }) {
   const t = useTema()
   const max = Math.max(1, ...datos.map((f) => f.total))
   return (
     <Grafica style={{ height: 300 }} option={{
       textStyle: { color: t.texto, fontFamily: 'inherit' },
-      tooltip: { formatter: (p) => `${DIAS[p.value[1]]} ${String(p.value[0]).padStart(2, '0')}:00 · ${fmt.format(p.value[2])} hechos` },
+      tooltip: { formatter: (p) => `${DIAS[p.value[1]]} ${String(p.value[0]).padStart(2, '0')}:00 · ${fmt.format(p.value[2])} ${sustantivo}` },
       grid: { left: 44, right: 8, top: 8, bottom: 56 },
       xAxis: { ...ejeCategoria(t, Array.from({ length: 24 }, (_, h) => `${h}h`)), splitArea: { show: false } },
       yAxis: { ...ejeCategoria(t, DIAS), inverse: true },

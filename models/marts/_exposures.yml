@@ -21,7 +21,8 @@ exposures:
     depends_on:
       - ref('agg_delitos_mes_comuna')
       - ref('agg_delitos_hora_dia')
-      - ref('agg_incidentes_viales_comuna')
+      - ref('agg_incidentes_viales_mes_comuna')
+      - ref('agg_incidentes_viales_hora_dia')
       - ref('dim_comunas')
     owner:
       name: Luis Miguel Rodríguez

@@ -74,3 +74,12 @@ main > .tarjeta, section.tarjeta + section.tarjeta { margin-bottom: 12px; }
 .segmentado { display: inline-flex; border: 1px solid var(--borde); border-radius: 8px; overflow: hidden; margin: 4px 0 8px; }
 .segmentado button { font: inherit; font-size: .85rem; padding: 6px 12px; border: 0; background: transparent; color: var(--suave); cursor: pointer; }
 .segmentado button[aria-pressed='true'] { background: var(--acento); color: #fff; }
+
+/* --- Pestañas (Delitos / Seguridad vial) --- */
+.pestanas { display: flex; gap: 4px; border-bottom: 1px solid var(--borde); margin: 4px 0 20px; }
+.pestanas button {
+  font: inherit; font-weight: 600; font-size: 1rem; padding: 10px 14px; background: none; border: 0;
+  border-bottom: 3px solid transparent; margin-bottom: -1px; color: var(--suave); cursor: pointer;
+}
+.pestanas button[aria-selected='true'] { color: var(--texto); border-bottom-color: var(--acento); }
+.pestanas button:focus-visible { outline: 2px solid var(--acento); outline-offset: 2px; }

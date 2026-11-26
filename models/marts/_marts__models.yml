@@ -219,3 +219,45 @@ models:
                 field: codigo_comuna
       - name: total_delitos
         description: Número de hechos (sum(cantidad)).
+
+  - name: agg_incidentes_viales_mes_comuna
+    description: >
+      Una fila por año, mes, gravedad y comuna, con el número de incidentes viales. Incluye los
+      incidentes sin comuna (codigo_comuna NULL). Alimenta la pestaña "Seguridad vial" del tablero.
+    columns:
+      - name: anio
+        description: Año del incidente.
+        data_tests: [not_null]
+      - name: mes
+        description: Mes del incidente (1–12).
+        data_tests: [not_null]
+      - name: gravedad
+        description: '{{ doc("gravedad") }}'
+      - name: codigo_comuna
+        description: '{{ doc("codigo_comuna") }}'
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('dim_comunas')
+                field: codigo_comuna
+      - name: total_incidentes
+        description: Número de incidentes (no de personas).
+
+  - name: agg_incidentes_viales_hora_dia
+    description: >
+      Una fila por año, gravedad, comuna, día de la semana y hora, con el número de incidentes
+      viales. Excluye los 6 incidentes sin hora registrada. Alimenta el mapa de calor de la pestaña vial.
+    columns:
+      - name: anio
+        description: Año del incidente.
+        data_tests: [not_null]
+      - name: gravedad
+        description: '{{ doc("gravedad") }}'
+      - name: codigo_comuna
+        description: '{{ doc("codigo_comuna") }}'
+      - name: dia_semana_num
+        description: Día de la semana ISO (1 = lunes … 7 = domingo).
+      - name: hora
+        description: Hora del incidente (0–23).
+      - name: total_incidentes
+        description: Número de incidentes.
