@@ -173,14 +173,16 @@ models:
 
   - name: agg_delitos_hora_dia
     description: >
-      Una fila por año, tipo de delito, día de la semana y hora, con el total de hechos.
-      Incluye los delitos sin comuna. Alimenta la tendencia anual y el mapa de calor del tablero.
+      Una fila por año, tipo de delito, comuna, día de la semana y hora, con el total de hechos.
+      Incluye los delitos sin comuna (codigo_comuna NULL). Alimenta el mapa de calor del tablero.
     columns:
       - name: anio
         description: Año del hecho.
         data_tests: [not_null]
       - name: tipo_delito
         description: Tipo de delito.
+      - name: codigo_comuna
+        description: '{{ doc("codigo_comuna") }}'
       - name: dia_semana_num
         description: Día de la semana ISO (1 = lunes … 7 = domingo), para ordenar.
         data_tests:
@@ -191,5 +193,29 @@ models:
         description: Día de la semana en español.
       - name: hora
         description: Hora del hecho (0–23).
+      - name: total_delitos
+        description: Número de hechos (sum(cantidad)).
+
+  - name: agg_delitos_mes_comuna
+    description: >
+      Una fila por año, mes, tipo de delito y comuna, con el total de hechos. Incluye los delitos
+      sin comuna (codigo_comuna NULL) para que el total de la ciudad cuadre con fct_delitos.
+      Alimenta las comparaciones entre años, meses y comunas del tablero.
+    columns:
+      - name: anio
+        description: Año del hecho.
+        data_tests: [not_null]
+      - name: mes
+        description: Mes del hecho (1–12).
+        data_tests: [not_null]
+      - name: tipo_delito
+        description: Tipo de delito.
+      - name: codigo_comuna
+        description: '{{ doc("codigo_comuna") }}'
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('dim_comunas')
+                field: codigo_comuna
       - name: total_delitos
         description: Número de hechos (sum(cantidad)).

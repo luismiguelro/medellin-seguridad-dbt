@@ -19,8 +19,8 @@ exposures:
       Tablero web para público no técnico (React + DuckDB-WASM). Lee los marts
       exportados a Parquet y los consulta dentro del navegador, sin servidor.
     depends_on:
+      - ref('agg_delitos_mes_comuna')
       - ref('agg_delitos_hora_dia')
-      - ref('agg_tasas_delitos_comuna')
       - ref('agg_incidentes_viales_comuna')
       - ref('dim_comunas')
     owner:

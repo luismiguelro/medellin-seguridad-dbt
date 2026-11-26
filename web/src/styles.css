@@ -22,7 +22,7 @@
 
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--fondo); }
-main { max-width: 960px; margin: 0 auto; padding: 32px 16px 48px; }
+main { max-width: 1100px; margin: 0 auto; padding: 32px 16px 48px; }
 
 .eyebrow { color: var(--acento); font-weight: 600; font-size: .85rem; margin: 0 0 8px; text-transform: uppercase; letter-spacing: .04em; }
 h1 { font-size: clamp(1.6rem, 4vw, 2.3rem); line-height: 1.15; margin: 0 0 12px; }
@@ -49,3 +49,28 @@ h2 { font-size: 1.05rem; margin: 0 0 8px; }
 
 footer { margin-top: 32px; color: var(--suave); font-size: .85rem; }
 footer a { color: var(--acento); }
+
+/* --- Fase B: filtros, rejilla y estados --- */
+.filtros {
+  position: sticky; top: 0; z-index: 5;
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px;
+  padding: 12px 0; margin-bottom: 16px; background: var(--fondo);
+}
+.selector { display: flex; flex-direction: column; gap: 4px; font-size: .8rem; color: var(--suave); }
+.selector select {
+  font: inherit; font-size: .95rem; color: var(--texto); background: var(--tarjeta);
+  border: 1px solid var(--borde); border-radius: 8px; padding: 8px 10px;
+}
+.selector select:focus-visible { outline: 2px solid var(--acento); outline-offset: 1px; }
+
+.kpi-valor.sube { color: #dc2626; }   /* más delitos = malo */
+.kpi-valor.baja { color: #16a34a; }
+.aviso { font-size: .85rem; color: var(--suave); background: var(--tarjeta); border-left: 3px solid var(--acento); padding: 8px 12px; border-radius: 4px; margin: 0 0 12px; }
+
+.rejilla { display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 12px; margin-bottom: 12px; }
+main > .tarjeta, section.tarjeta + section.tarjeta { margin-bottom: 12px; }
+@media (max-width: 440px) { .rejilla { grid-template-columns: 1fr; } }
+
+.segmentado { display: inline-flex; border: 1px solid var(--borde); border-radius: 8px; overflow: hidden; margin: 4px 0 8px; }
+.segmentado button { font: inherit; font-size: .85rem; padding: 6px 12px; border: 0; background: transparent; color: var(--suave); cursor: pointer; }
+.segmentado button[aria-pressed='true'] { background: var(--acento); color: #fff; }
