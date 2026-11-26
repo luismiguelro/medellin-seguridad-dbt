@@ -1,0 +1,97 @@
+# ---------------------------------------------------------------------------
+# Módulo 6 · Clase "Deployment jobs"
+#
+# Un JOB es una lista de comandos dbt que corre sola, en un horario o ante un
+# evento, contra el entorno de producción. En dbt Cloud se arma con
+# formularios; aquí el "job" es este archivo de GitHub Actions.
+#
+# Disparadores (los mismos tipos que ofrece dbt Cloud):
+#   - schedule:          cada lunes 6:00 a. m. hora Colombia (11:00 UTC)
+#   - push a main:       cada vez que se integra un cambio
+#   - workflow_dispatch: botón "Run workflow" para correrlo a mano
+#
+# Comandos del job (igual que las casillas de un job en dbt Cloud):
+#   1. dbt source freshness   -> ¿los datos crudos están al día?
+#   2. dbt build              -> modelos + tests en el target prod
+#   3. dbt docs generate      -> sitio de documentación, publicado en GitHub Pages
+# ---------------------------------------------------------------------------
+name: Deploy prod
+
+on:
+  schedule:
+    - cron: "0 11 * * 1"
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Nunca dos despliegues a la vez.
+concurrency:
+  group: deploy-prod
+  cancel-in-progress: false
+
+jobs:
+  dbt-prod:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Descargar el código del repo
+        uses: actions/checkout@v4
+
+      - name: Instalar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Instalar dependencias de la ingesta
+        run: pip install -r requirements.txt
+
+      - name: Extraer y cargar datos de MEData
+        run: python ingest/extract_load.py
+
+      - name: Instalar dbt Fusion (misma versión que en local)
+        run: |
+          curl -fsSL https://public.cdn.getdbt.com/fs/install/install.sh | sh -s -- --update --version 2.0.9
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      - name: dbt source freshness
+        run: dbt source freshness --target prod
+
+      - name: dbt build
+        run: dbt build --target prod
+
+      - name: dbt docs generate
+        run: dbt docs generate --target prod --output-dir site
+
+      # Módulo 6 · Clase "Reviewing jobs": los artefactos quedan descargables
+      # en la página de la corrida (run_results.json dice qué pasó con cada nodo).
+      - name: Guardar artefactos de la corrida
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dbt-artifacts
+          path: |
+            target/run_results.json
+            target/manifest.json
+            target/sources.json
+          if-no-files-found: ignore
+
+      - name: Preparar sitio de documentación
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  # La documentación queda pública en https://<usuario>.github.io/<repo>/
+  publicar-docs:
+    needs: dbt-prod
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Publicar en GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

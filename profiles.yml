@@ -1,5 +1,24 @@
 # Perfil local versionado con el proyecto: DuckDB no tiene credenciales,
 # así que cualquiera que clone el repo puede ejecutarlo tal cual.
+#
+# ---------------------------------------------------------------------------
+# Módulo 6 · Clase "Deployment environments"
+#
+# Un TARGET es un entorno: a dónde escribe dbt. El mismo código SQL se
+# construye en esquemas distintos según el target que se elija:
+#
+#   dev   -> tu espacio de trabajo (dev_staging, dev_marts, ...)
+#            dbt build                 (es el target por defecto)
+#   ci    -> pruebas automáticas de cada pull request (ci_staging, ci_marts, ...)
+#            dbt build --target ci
+#   prod  -> lo que consumen otros: dashboards, analistas (prod_staging, prod_marts, ...)
+#            dbt build --target prod
+#
+# Los esquemas se llaman <schema del target>_<schema del modelo> por la regla
+# por defecto de dbt (generate_schema_name). En una bodega de verdad (Snowflake,
+# BigQuery) cada target tendría además su propia base de datos o credenciales;
+# aquí basta con separar los esquemas dentro del mismo archivo DuckDB.
+# ---------------------------------------------------------------------------
 medellin_seguridad:
   target: dev
   outputs:
@@ -7,4 +26,16 @@ medellin_seguridad:
       type: duckdb
       path: data/medellin.duckdb
       schema: dev
+      threads: 4
+
+    ci:
+      type: duckdb
+      path: data/medellin.duckdb
+      schema: ci
+      threads: 4
+
+    prod:
+      type: duckdb
+      path: data/medellin.duckdb
+      schema: prod
       threads: 4

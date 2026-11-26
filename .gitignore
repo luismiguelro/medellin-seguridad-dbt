@@ -12,3 +12,4 @@ data/
 *.duckdb.wal
 dbt_internal_packages/
 .user.yml
+site/

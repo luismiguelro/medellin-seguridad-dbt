@@ -1,0 +1,54 @@
+# ---------------------------------------------------------------------------
+# Módulo 6 · Clase "CI jobs" (en dbt Cloud: "Continuous integration job")
+#
+# CI = integración continua. Cada vez que abres o actualizas un pull request,
+# GitHub ejecuta el proyecto completo en una máquina limpia y marca el PR con
+# ✅ o ❌. Así un cambio que rompe un modelo o un test se detecta ANTES de
+# llegar a main (y por lo tanto antes de llegar a producción).
+#
+# Se construye en el target "ci" (esquemas ci_*), nunca en prod.
+# ---------------------------------------------------------------------------
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+
+# Si subes otro commit al mismo PR, se cancela la corrida anterior.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  dbt-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Descargar el código del repo
+        uses: actions/checkout@v4
+
+      - name: Instalar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Instalar dependencias de la ingesta
+        run: pip install -r requirements.txt
+
+      # La máquina de GitHub empieza vacía: hay que cargar raw.* cada vez (EL de ELT).
+      - name: Extraer y cargar datos de MEData
+        run: python ingest/extract_load.py
+
+      - name: Instalar dbt Fusion (misma versión que en local)
+        run: |
+          curl -fsSL https://public.cdn.getdbt.com/fs/install/install.sh | sh -s -- --update --version 2.0.9
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      - name: dbt debug
+        run: dbt debug --target ci
+
+      # build = run + test + seed en orden del DAG. Si un test con severidad
+      # error falla, el comando termina con código distinto de 0 y el PR queda en ❌.
+      - name: dbt build
+        run: dbt build --target ci
