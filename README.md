@@ -9,6 +9,26 @@ Pipeline analítico sobre **datos abiertos de seguridad ciudadana y seguridad vi
 (MEData, Alcaldía de Medellín), construido con **dbt + DuckDB** siguiendo las prácticas del curso
 *dbt Fundamentals* de dbt Labs.
 
+## Tablero
+
+Para público no técnico: filtros por delito o gravedad, año, año de comparación y comuna; mes a mes,
+evolución anual, mapa y ranking de comunas (por número de hechos o por 100 mil habitantes) y mapa
+de calor por día y hora. Dos pestañas: **Delitos** (2003–2023) y **Seguridad vial** (2014–2020).
+
+![Tablero: delitos](assets/tablero_delitos.png)
+
+<details>
+<summary>Pestaña Seguridad vial</summary>
+
+![Tablero: seguridad vial](assets/tablero_vial.png)
+
+</details>
+
+**Cómo funciona, sin servidor:** el job de deploy exporta a Parquet los marts que declara la
+*exposure* `tablero_seguridad_medellin` (~530 KB en total) y el sitio en React los consulta con
+**DuckDB-WASM**, el mismo motor de dbt corriendo dentro del navegador. Cada filtro es una consulta SQL
+local. Código en [`web/`](web/); exportación en [`scripts/exportar_marts.py`](scripts/exportar_marts.py).
+
 ## Preguntas de negocio
 
 - ¿Cómo ha evolucionado cada delito (hurtos, homicidios, extorsión) entre 2003 y 2023?
@@ -45,6 +65,8 @@ MEData (CSV) ──► ingest/extract_load.py ──► DuckDB: raw.*
                                      intermediate (uniones, lógica)
                                           ▼
                                         marts  (hechos y dimensiones)
+                                          ▼
+                        exposure ──► Parquet ──► tablero React + DuckDB-WASM (GitHub Pages)
 ```
 
 ### Linaje (DAG de dbt)
@@ -91,7 +113,9 @@ dbt build
 | `prod` | `prod_*` | cada lunes 6 a. m. (COT), en cada push a `main` o a mano ([`deploy.yml`](.github/workflows/deploy.yml)) |
 
 El job de producción ejecuta ingesta → `dbt source freshness` → `dbt build` → `dbt docs generate`
-y publica la documentación en GitHub Pages. Un PR con un test roto queda en ❌ y no llega a prod.
+→ exportación de marts → build del tablero, y publica tablero y documentación en GitHub Pages.
+Además, [`revisar_medata.yml`](.github/workflows/revisar_medata.yml) consulta a diario el ETag de cada
+archivo de MEData (sin descargarlos) y dispara el deploy solo si la Alcaldía publicó cambios. Un PR con un test roto queda en ❌ y no llega a prod.
 
 ## Hallazgos
 
@@ -123,3 +147,8 @@ y publica la documentación en GitHub Pages. Un PR con un test roto queda en ❌
 - [x] Módulo 4 — Tests (genéricos y singulares)
 - [x] Módulo 5 — Documentación (`dbt docs`)
 - [x] Módulo 6 — Deployment (entornos, jobs y CI con GitHub Actions)
+
+Después del curso:
+
+- [x] Fase A — Detección diaria de cambios en MEData y freshness por fecha del último hecho
+- [x] Fase B — Tablero web (React + DuckDB-WASM): delitos y seguridad vial, mapa de comunas, CI del frontend
